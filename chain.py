@@ -227,6 +227,11 @@ llm = ChatOpenAI(
         max_tokens=16384,
         google_api_key=os.environ.get("GOOGLE_API_KEY", "not_provided"),
     ),
+    openai_gpt_4=ChatOpenAI(
+        model="gpt-4",
+        streaming=True,
+        temperature=0,
+    )
 )
 
 retriever = get_retriever()

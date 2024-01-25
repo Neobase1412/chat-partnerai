@@ -36,9 +36,7 @@ export function ChatWindow(props: { conversationId: string }) {
   const [messages, setMessages] = useState<Array<Message>>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [llm, setLlm] = useState(
-    searchParams.get("llm") ?? "openai_gpt_3_5_turbo",
-  );
+  const [llm, setLlm] = useState(searchParams.get("llm") ?? "openai_gpt_4");
 
   const [chatHistory, setChatHistory] = useState<
     { human: string; ai: string }[]
@@ -95,7 +93,7 @@ export function ChatWindow(props: { conversationId: string }) {
           timeout: 60000,
         },
       });
-      const llmDisplayName = llm ?? "openai_gpt_3_5_turbo";
+      const llmDisplayName = llm ?? "openai_gpt_4";
       const streamLog = await remoteChain.streamLog(
         {
           question: messageValue,
@@ -235,12 +233,13 @@ export function ChatWindow(props: { conversationId: string }) {
               }}
               width={"240px"}
             >
-              <option value="openai_gpt_3_5_turbo">GPT-3.5-Turbo</option>
-              <option value="anthropic_claude_2_1">Claude-2.1</option>
-              <option value="google_gemini_pro">Google Gemini Pro</option>
-              <option value="fireworks_mixtral">
+              {/* <option value="openai_gpt_3_5_turbo">GPT-3.5-Turbo</option> */}
+              <option value="openai_gpt_4">GPT-4</option>
+              {/* <option value="anthropic_claude_2_1">Claude-2.1</option> */}
+              {/* <option value="google_gemini_pro">Google Gemini Pro</option> */}
+              {/* <option value="fireworks_mixtral">
                 Mixtral (via Fireworks.ai)
-              </option>
+              </option> */}
             </Select>
           </div>
         </div>

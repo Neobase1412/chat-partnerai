@@ -1,12 +1,10 @@
 """Load html from files, clean up, split, ingest into Weaviate."""
 import logging
 import os
-import re
-from parser import langchain_docs_extractor
 
 import weaviate
-from bs4 import BeautifulSoup, SoupStrainer
-from langchain.document_loaders import RecursiveUrlLoader, SitemapLoader
+from bs4 import BeautifulSoup
+from langchain_community.document_loaders import GitbookLoader
 from langchain.indexes import SQLRecordManager
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.utils.html import (PREFIXES_TO_IGNORE_REGEX,
@@ -24,7 +22,6 @@ WEAVIATE_URL = os.environ["WEAVIATE_URL"]
 WEAVIATE_API_KEY = os.environ["WEAVIATE_API_KEY"]
 RECORD_MANAGER_DB_URL = os.environ["RECORD_MANAGER_DB_URL"]
 
-
 def metadata_extractor(meta: dict, soup: BeautifulSoup) -> dict:
     title = soup.find("title")
     description = soup.find("meta", attrs={"name": "description"})
@@ -37,77 +34,16 @@ def metadata_extractor(meta: dict, soup: BeautifulSoup) -> dict:
         **meta,
     }
 
-
-def load_langchain_docs():
-    return SitemapLoader(
-        "https://python.langchain.com/sitemap.xml",
-        filter_urls=["https://python.langchain.com/"],
-        parsing_function=langchain_docs_extractor,
-        default_parser="lxml",
-        bs_kwargs={
-            "parse_only": SoupStrainer(
-                name=("article", "title", "html", "lang", "content")
-            ),
-        },
-        meta_function=metadata_extractor,
-    ).load()
-
-
-def load_langsmith_docs():
-    return RecursiveUrlLoader(
-        url="https://docs.smith.langchain.com/",
-        max_depth=8,
-        extractor=simple_extractor,
-        prevent_outside=True,
-        use_async=True,
-        timeout=600,
-        # Drop trailing / to avoid duplicate pages.
-        link_regex=(
-            f"href=[\"']{PREFIXES_TO_IGNORE_REGEX}((?:{SUFFIXES_TO_IGNORE_REGEX}.)*?)"
-            r"(?:[\#'\"]|\/[\#'\"])"
-        ),
-        check_response_status=True,
-    ).load()
-
-
-def simple_extractor(html: str) -> str:
-    soup = BeautifulSoup(html, "lxml")
-    return re.sub(r"\n\n+", "\n\n", soup.text).strip()
-
-
-def load_api_docs():
-    return RecursiveUrlLoader(
-        url="https://api.python.langchain.com/en/latest/",
-        max_depth=8,
-        extractor=simple_extractor,
-        prevent_outside=True,
-        use_async=True,
-        timeout=600,
-        # Drop trailing / to avoid duplicate pages.
-        link_regex=(
-            f"href=[\"']{PREFIXES_TO_IGNORE_REGEX}((?:{SUFFIXES_TO_IGNORE_REGEX}.)*?)"
-            r"(?:[\#'\"]|\/[\#'\"])"
-        ),
-        check_response_status=True,
-        exclude_dirs=(
-            "https://api.python.langchain.com/en/latest/_sources",
-            "https://api.python.langchain.com/en/latest/_modules",
-        ),
-    ).load()
-
+def load_gitbook_docs():
+    loader = GitbookLoader("https://neobase-2.gitbook.io/partnerai-internal-documents/", load_all_paths=True)
+    return loader.load()
 
 def ingest_docs():
-    docs_from_documentation = load_langchain_docs()
-    logger.info(f"Loaded {len(docs_from_documentation)} docs from documentation")
-    docs_from_api = load_api_docs()
-    logger.info(f"Loaded {len(docs_from_api)} docs from API")
-    docs_from_langsmith = load_langsmith_docs()
-    logger.info(f"Loaded {len(docs_from_langsmith)} docs from Langsmith")
+    docs_from_gitbook = load_gitbook_docs()
+    logger.info(f"Loaded {len(docs_from_gitbook)} docs from GitBook")
 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=4000, chunk_overlap=200)
-    docs_transformed = text_splitter.split_documents(
-        docs_from_documentation + docs_from_api + docs_from_langsmith
-    )
+    docs_transformed = text_splitter.split_documents(docs_from_gitbook)
 
     # We try to return 'source' and 'title' metadata when querying vector store and
     # Weaviate will error at query time if one of the attributes is missing from a
@@ -151,7 +87,6 @@ def ingest_docs():
     logger.info(
         f"LangChain now has this many vectors: {num_vecs}",
     )
-
 
 if __name__ == "__main__":
     ingest_docs()
