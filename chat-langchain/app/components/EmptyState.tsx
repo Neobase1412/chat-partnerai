@@ -31,7 +31,7 @@ export function EmptyState(props: { onChoice: (question: string) => any }) {
               color={"gray.200"}
               textAlign={"center"}
             >
-              How do I use a RecursiveUrlLoader to load content from a page?
+              What is the purpose of the &apos;dataset_queries&apos; table?
             </Heading>
           </CardHeader>
         </Card>
@@ -52,7 +52,8 @@ export function EmptyState(props: { onChoice: (question: string) => any }) {
               color={"gray.200"}
               textAlign={"center"}
             >
-              What does RunnablePassthrough.assign() do?
+              What does the &apos;is_pinned&apos; field represent in the
+              &apos;installed_apps&apos; table?
             </Heading>
           </CardHeader>
         </Card>
@@ -74,7 +75,8 @@ export function EmptyState(props: { onChoice: (question: string) => any }) {
               color={"gray.200"}
               textAlign={"center"}
             >
-              What are some ways of doing retrieval augmented generation?
+              What is the default value for the &apos;is_anonymous&apos; field
+              in the &apos;end_users&apos; table?
             </Heading>
           </CardHeader>
         </Card>
@@ -95,7 +97,8 @@ export function EmptyState(props: { onChoice: (question: string) => any }) {
               color={"gray.200"}
               textAlign={"center"}
             >
-              How do I run a model locally on my laptop with Ollama?
+              What is the purpose of the &apos;get_status&apos; method in the
+              &apos;accounts&apos; table?
             </Heading>
           </CardHeader>
         </Card>
